@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="800" height="600" xmlns="http://www.w3.org/2000/svg">
+  <!-- Styles -->
+  <style>
+    .node {
+      fill: #fff;
+      stroke: #4a5568;
+      stroke-width: 2px;
+    }
+    .node-primary {
+      fill: #ebf5ff;
+      stroke: #3182ce;
+    }
+    .node-secondary {
+      fill: #f0fff4;
+      stroke: #38a169;
+    }
+    .node-tertiary {
+      fill: #fff5f5;
+      stroke: #e53e3e;
+    }
+    .edge {
+      stroke: #a0aec0;
+      stroke-width: 2px;
+      fill: none;
+    }
+    .edge-primary {
+      stroke: #3182ce;
+    }
+    .edge-secondary {
+      stroke: #38a169;
+    }
+    .edge-tertiary {
+      stroke: #e53e3e;
+    }
+    .label {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: 14px;
+      text-anchor: middle;
+      dominant-baseline: middle;
+      pointer-events: none;
+    }
+    .node:hover {
+      fill: #f7fafc;
+      cursor: pointer;
+    }
+    .edge-label {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: 12px;
+      fill: #4a5568;
+      text-anchor: middle;
+      dominant-baseline: middle;
+      pointer-events: none;
+    }
+  </style>
+
+  <!-- Main Nodes -->
+  <g>
+    <!-- AI Development Node -->
+    <g transform="translate(400, 50)">
+      <rect class="node node-primary" width="150" height="50" rx="10" ry="10" x="-75" y="-25" />
+      <text class="label">AI Development</text>
+    </g>
+
+    <!-- Current Scaling Approach -->
+    <g transform="translate(200, 150)">
+      <rect class="node node-tertiary" width="180" height="50" rx="10" ry="10" x="-90" y="-25" />
+      <text class="label">Current Scaling Approach</text>
+    </g>
+
+    <!-- Neuroscience-Informed Approach -->
+    <g transform="translate(600, 150)">
+      <rect class="node node-secondary" width="200" height="50" rx="10" ry="10" x="-100" y="-25" />
+      <text class="label">Neuroscience-Informed Approach</text>
+    </g>
+
+    <!-- Scaling Approach Children -->
+    <g transform="translate(100, 250)">
+      <rect class="node node-tertiary" width="120" height="40" rx="8" ry="8" x="-60" y="-20" />
+      <text class="label">Larger Models</text>
+    </g>
+
+    <g transform="translate(200, 250)">
+      <rect class="node node-tertiary" width="120" height="40" rx="8" ry="8" x="-60" y="-20" />
+      <text class="label">More Data</text>
+    </g>
+
+    <g transform="translate(300, 250)">
+      <rect class="node node-tertiary" width="120" height="40" rx="8" ry="8" x="-60" y="-20" />
+      <text class="label">More Compute</text>
+    </g>
+
+    <!-- Neuroscience Approach Children -->
+    <g transform="translate(500, 250)">
+      <rect class="node node-secondary" width="150" height="40" rx="8" ry="8" x="-75" y="-20" />
+      <text class="label">Predictive Processing</text>
+    </g>
+
+    <g transform="translate(600, 250)">
+      <rect class="node node-secondary" width="150" height="40" rx="8" ry="8" x="-75" y="-20" />
+      <text class="label">Free Energy Principle</text>
+    </g>
+
+    <g transform="translate(700, 250)">
+      <rect class="node node-secondary" width="150" height="40" rx="8" ry="8" x="-75" y="-20" />
+      <text class="label">Hierarchical Processing</text>
+    </g>
+
+    <!-- Outcomes -->
+    <g transform="translate(200, 350)">
+      <rect class="node node-tertiary" width="120" height="40" rx="8" ry="8" x="-60" y="-20" />
+      <text class="label">Limitations</text>
+    </g>
+
+    <g transform="translate(600, 350)">
+      <rect class="node node-secondary" width="120" height="40" rx="8" ry="8" x="-60" y="-20" />
+      <text class="label">Benefits</text>
+    </g>
+
+    <!-- Future of AI -->
+    <g transform="translate(400, 450)">
+      <rect class="node node-primary" width="150" height="50" rx="10" ry="10" x="-75" y="-25" />
+      <text class="label">Future of AI</text>
+    </g>
+  </g>
+
+  <!-- Edges -->
+  <g>
+    <!-- Main Branches -->
+    <path class="edge" d="M400,75 C400,100 300,125 200,150" />
+    <path class="edge" d="M400,75 C400,100 500,125 600,150" />
+
+    <!-- Scaling Children -->
+    <path class="edge edge-tertiary" d="M200,175 C200,200 150,225 100,250" />
+    <path class="edge edge-tertiary" d="M200,175 C200,200 200,225 200,250" />
+    <path class="edge edge-tertiary" d="M200,175 C200,200 250,225 300,250" />
+
+    <!-- Neuroscience Children -->
+    <path class="edge edge-secondary" d="M600,175 C600,200 550,225 500,250" />
+    <path class="edge edge-secondary" d="M600,175 C600,200 600,225 600,250" />
+    <path class="edge edge-secondary" d="M600,175 C600,200 650,225 700,250" />
+
+    <!-- To Outcomes -->
+    <path class="edge edge-tertiary" d="M100,270 C100,300 150,325 200,350" />
+    <path class="edge edge-tertiary" d="M200,270 C200,300 200,325 200,350" />
+    <path class="edge edge-tertiary" d="M300,270 C300,300 250,325 200,350" />
+
+    <path class="edge edge-secondary" d="M500,270 C500,300 550,325 600,350" />
+    <path class="edge edge-secondary" d="M600,270 C600,300 600,325 600,350" />
+    <path class="edge edge-secondary" d="M700,270 C700,300 650,325 600,350" />
+
+    <!-- To Future -->
+    <path class="edge edge-tertiary" d="M200,370 C200,400 300,425 400,450" />
+    <path class="edge edge-secondary" d="M600,370 C600,400 500,425 400,450" />
+  </g>
+</svg>

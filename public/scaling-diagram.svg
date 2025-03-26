@@ -1,0 +1,122 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="800" height="400" xmlns="http://www.w3.org/2000/svg">
+  <!-- Styles -->
+  <style>
+    .node {
+      fill: #fff;
+      stroke: #4a5568;
+      stroke-width: 2px;
+    }
+    .node-scaling {
+      fill: #fff5f5;
+      stroke: #e53e3e;
+    }
+    .arrow {
+      stroke: #a0aec0;
+      stroke-width: 2px;
+      fill: none;
+      marker-end: url(#arrowhead);
+    }
+    .arrow-scaling {
+      stroke: #e53e3e;
+    }
+    .label {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: 14px;
+      text-anchor: middle;
+      dominant-baseline: middle;
+      pointer-events: none;
+    }
+    .sublabel {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: 12px;
+      fill: #4a5568;
+      text-anchor: middle;
+      dominant-baseline: middle;
+    }
+    .data-point {
+      fill: #e53e3e;
+    }
+    .graph-line {
+      stroke: #e53e3e;
+      stroke-width: 2px;
+      fill: none;
+    }
+    .axis {
+      stroke: #4a5568;
+      stroke-width: 1px;
+    }
+    .axis-label {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: 12px;
+      fill: #4a5568;
+    }
+  </style>
+
+  <!-- Arrow marker definition -->
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#a0aec0" />
+    </marker>
+    <marker id="arrowhead-scaling" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#e53e3e" />
+    </marker>
+  </defs>
+
+  <!-- Title -->
+  <text x="400" y="30" font-family="sans-serif" font-size="20" text-anchor="middle" font-weight="bold">The Limitations of Scaling</text>
+
+  <!-- Diminishing Returns Graph -->
+  <g transform="translate(100, 100)">
+    <rect class="node node-scaling" width="250" height="200" rx="10" ry="10" x="0" y="0" />
+    
+    <!-- Graph title -->
+    <text x="125" y="25" class="label" font-weight="bold">Diminishing Returns</text>
+    
+    <!-- Axes -->
+    <line x1="50" y1="150" x2="200" y2="150" class="axis" />
+    <line x1="50" y1="150" x2="50" y2="50" class="axis" />
+    
+    <!-- Axis labels -->
+    <text x="125" y="170" class="axis-label">Model Size (parameters)</text>
+    <text transform="rotate(-90)" x="-100" y="30" class="axis-label">Performance</text>
+    
+    <!-- Data points and curve -->
+    <path d="M50,120 Q75,90 100,80 Q125,70 150,65 Q175,62 200,60" class="graph-line" />
+    <circle cx="50" cy="120" r="3" class="data-point" />
+    <circle cx="100" cy="80" r="3" class="data-point" />
+    <circle cx="150" cy="65" r="3" class="data-point" />
+    <circle cx="200" cy="60" r="3" class="data-point" />
+  </g>
+
+  <!-- Resource Constraints Graph -->
+  <g transform="translate(450, 100)">
+    <rect class="node node-scaling" width="250" height="200" rx="10" ry="10" x="0" y="0" />
+    
+    <!-- Graph title -->
+    <text x="125" y="25" class="label" font-weight="bold">Resource Constraints</text>
+    
+    <!-- Axes -->
+    <line x1="50" y1="150" x2="200" y2="150" class="axis" />
+    <line x1="50" y1="150" x2="50" y2="50" class="axis" />
+    
+    <!-- Axis labels -->
+    <text x="125" y="170" class="axis-label">Model Size (parameters)</text>
+    <text transform="rotate(-90)" x="-100" y="30" class="axis-label">Training Cost ($)</text>
+    
+    <!-- Data points and curve -->
+    <path d="M50,140 Q75,130 100,110 Q125,80 150,60 Q175,30 200,20" class="graph-line" />
+    <circle cx="50" cy="140" r="3" class="data-point" />
+    <circle cx="100" cy="110" r="3" class="data-point" />
+    <circle cx="150" cy="60" r="3" class="data-point" />
+    <circle cx="200" cy="20" r="3" class="data-point" />
+  </g>
+
+  <!-- Bottom section with additional limitations -->
+  <g transform="translate(100, 320)">
+    <text x="0" y="0" font-family="sans-serif" font-size="16" font-weight="bold">Additional Limitations:</text>
+    <text x="0" y="30" font-family="sans-serif" font-size="14">• Generalization issues: Larger models still struggle with novel scenarios</text>
+    <text x="0" y="55" font-family="sans-serif" font-size="14">• Reasoning limitations: Scale alone does not solve fundamental reasoning problems</text>
+    <text x="0" y="80" font-family="sans-serif" font-size="14">• Environmental impact: Training large models has significant carbon footprint</text>
+  </g>
+</svg>

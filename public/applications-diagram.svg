@@ -1,0 +1,126 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="800" height="500" xmlns="http://www.w3.org/2000/svg">
+  <!-- Styles -->
+  <style>
+    .node {
+      fill: #fff;
+      stroke: #4a5568;
+      stroke-width: 2px;
+    }
+    .node-app {
+      fill: #ebf8ff;
+      stroke: #3182ce;
+    }
+    .connection {
+      stroke: #3182ce;
+      stroke-width: 2px;
+      fill: none;
+    }
+    .label {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: 14px;
+      text-anchor: middle;
+      dominant-baseline: middle;
+      pointer-events: none;
+    }
+    .title {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: 20px;
+      font-weight: bold;
+      text-anchor: middle;
+    }
+    .subtitle {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: 16px;
+      text-anchor: middle;
+      fill: #4a5568;
+    }
+    .description {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: 14px;
+      fill: #4a5568;
+    }
+    .icon-bg {
+      fill: #ebf8ff;
+      stroke: #3182ce;
+      stroke-width: 2px;
+    }
+  </style>
+
+  <!-- Title -->
+  <text x="400" y="30" class="title">Practical Applications of Neuroscience-Informed AI</text>
+  <text x="400" y="55" class="subtitle">How brain-inspired approaches can improve AI systems</text>
+
+  <!-- Central Hub -->
+  <g transform="translate(400, 150)">
+    <circle class="node node-app" r="60" />
+    <text class="label" font-weight="bold" y="-10">Neuroscience</text>
+    <text class="label" font-weight="bold" y="10">Inspired</text>
+    <text class="label" font-weight="bold" y="30">AI</text>
+  </g>
+
+  <!-- Application 1: Efficient Learning -->
+  <g transform="translate(200, 150)">
+    <circle class="node node-app" r="40" />
+    <text class="label" font-weight="bold">Efficient</text>
+    <text class="label" y="20">Learning</text>
+    
+    <!-- Connection to central hub -->
+    <line x1="40" y1="0" x2="140" y2="0" class="connection" />
+    
+    <!-- Description -->
+    <g transform="translate(0, 100)">
+      <rect class="node node-app" width="180" height="80" rx="10" ry="10" x="-90" y="-40" />
+      <text y="-25" class="label">Requires less data</text>
+      <text y="-5" class="label">through predictive</text>
+      <text y="15" class="label">learning and active</text>
+      <text y="35" class="label">hypothesis testing</text>
+    </g>
+  </g>
+
+  <!-- Application 2: Robust Generalization -->
+  <g transform="translate(400, 300)">
+    <circle class="node node-app" r="40" />
+    <text class="label" font-weight="bold">Robust</text>
+    <text class="label" y="20">Generalization</text>
+    
+    <!-- Connection to central hub -->
+    <line x1="0" y1="-40" x2="0" y2="-90" class="connection" />
+    
+    <!-- Description -->
+    <g transform="translate(0, 100)">
+      <rect class="node node-app" width="180" height="80" rx="10" ry="10" x="-90" y="-40" />
+      <text y="-25" class="label">Better performance on</text>
+      <text y="-5" class="label">novel tasks through</text>
+      <text y="15" class="label">hierarchical abstractions</text>
+      <text y="35" class="label">and causal modeling</text>
+    </g>
+  </g>
+
+  <!-- Application 3: Energy Efficiency -->
+  <g transform="translate(600, 150)">
+    <circle class="node node-app" r="40" />
+    <text class="label" font-weight="bold">Energy</text>
+    <text class="label" y="20">Efficiency</text>
+    
+    <!-- Connection to central hub -->
+    <line x1="-40" y1="0" x2="-140" y2="0" class="connection" />
+    
+    <!-- Description -->
+    <g transform="translate(0, 100)">
+      <rect class="node node-app" width="180" height="80" rx="10" ry="10" x="-90" y="-40" />
+      <text y="-25" class="label">Reduced compute needs</text>
+      <text y="-5" class="label">through sparse activations</text>
+      <text y="15" class="label">and predictive coding</text>
+      <text y="35" class="label">principles</text>
+    </g>
+  </g>
+
+  <!-- Bottom section with real-world examples -->
+  <g transform="translate(400, 430)">
+    <text class="title" text-anchor="middle">Real-World Examples</text>
+    <text y="30" class="description" text-anchor="middle">• Self-driving cars with better scene understanding</text>
+    <text y="55" class="description" text-anchor="middle">• Medical diagnosis systems with improved reasoning</text>
+    <text y="80" class="description" text-anchor="middle">• Robotics with more natural and adaptive behaviors</text>
+  </g>
+</svg>

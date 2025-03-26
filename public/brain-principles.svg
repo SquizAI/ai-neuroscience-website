@@ -1,0 +1,120 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="800" height="500" xmlns="http://www.w3.org/2000/svg">
+  <!-- Styles -->
+  <style>
+    .node {
+      fill: #fff;
+      stroke: #4a5568;
+      stroke-width: 2px;
+    }
+    .node-brain {
+      fill: #f0fff4;
+      stroke: #38a169;
+    }
+    .connection {
+      stroke: #38a169;
+      stroke-width: 2px;
+      fill: none;
+    }
+    .brain-outline {
+      fill: #f0fff4;
+      stroke: #38a169;
+      stroke-width: 3px;
+    }
+    .label {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: 14px;
+      text-anchor: middle;
+      dominant-baseline: middle;
+      pointer-events: none;
+    }
+    .title {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: 20px;
+      font-weight: bold;
+      text-anchor: middle;
+    }
+    .subtitle {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: 16px;
+      text-anchor: middle;
+      fill: #4a5568;
+    }
+    .description {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      font-size: 14px;
+      fill: #4a5568;
+    }
+  </style>
+
+  <!-- Title -->
+  <text x="400" y="30" class="title">Neuroscience Principles for AI</text>
+  <text x="400" y="55" class="subtitle">Key brain mechanisms that can inform artificial intelligence design</text>
+
+  <!-- Brain outline -->
+  <path d="M400,120 C500,100 550,150 550,200 C550,250 500,300 450,320 C500,340 500,380 450,400 C400,420 350,410 300,400 C250,410 200,420 150,400 C100,380 100,340 150,320 C100,300 50,250 50,200 C50,150 100,100 200,120 C250,100 350,100 400,120" class="brain-outline" />
+
+  <!-- Predictive Processing -->
+  <g transform="translate(200, 180)">
+    <circle class="node node-brain" r="40" />
+    <text class="label" font-weight="bold">Predictive</text>
+    <text class="label" y="20">Processing</text>
+    
+    <!-- Connection to description -->
+    <line x1="40" y1="0" x2="120" y2="0" class="connection" />
+    
+    <!-- Description -->
+    <g transform="translate(180, 0)">
+      <rect class="node node-brain" width="200" height="80" rx="10" ry="10" x="-40" y="-40" />
+      <text x="60" y="-25" class="label" text-anchor="start">The brain constantly</text>
+      <text x="60" y="-5" class="label" text-anchor="start">predicts sensory input</text>
+      <text x="60" y="15" class="label" text-anchor="start">and updates models</text>
+      <text x="60" y="35" class="label" text-anchor="start">based on prediction errors</text>
+    </g>
+  </g>
+
+  <!-- Hierarchical Processing -->
+  <g transform="translate(400, 250)">
+    <circle class="node node-brain" r="40" />
+    <text class="label" font-weight="bold">Hierarchical</text>
+    <text class="label" y="20">Processing</text>
+    
+    <!-- Connection to description -->
+    <line x1="40" y1="0" x2="120" y2="0" class="connection" />
+    
+    <!-- Description -->
+    <g transform="translate(180, 0)">
+      <rect class="node node-brain" width="200" height="80" rx="10" ry="10" x="-40" y="-40" />
+      <text x="60" y="-25" class="label" text-anchor="start">Information flows through</text>
+      <text x="60" y="-5" class="label" text-anchor="start">multiple processing levels</text>
+      <text x="60" y="15" class="label" text-anchor="start">with increasing abstraction</text>
+      <text x="60" y="35" class="label" text-anchor="start">at higher levels</text>
+    </g>
+  </g>
+
+  <!-- Free Energy Principle -->
+  <g transform="translate(200, 320)">
+    <circle class="node node-brain" r="40" />
+    <text class="label" font-weight="bold">Free Energy</text>
+    <text class="label" y="20">Principle</text>
+    
+    <!-- Connection to description -->
+    <line x1="40" y1="0" x2="120" y2="0" class="connection" />
+    
+    <!-- Description -->
+    <g transform="translate(180, 0)">
+      <rect class="node node-brain" width="200" height="80" rx="10" ry="10" x="-40" y="-40" />
+      <text x="60" y="-25" class="label" text-anchor="start">Systems minimize surprise</text>
+      <text x="60" y="-5" class="label" text-anchor="start">by either changing their</text>
+      <text x="60" y="15" class="label" text-anchor="start">model of the world or</text>
+      <text x="60" y="35" class="label" text-anchor="start">acting to confirm predictions</text>
+    </g>
+  </g>
+
+  <!-- Bottom section with AI applications -->
+  <g transform="translate(400, 430)">
+    <text class="title" text-anchor="middle">Applications to AI</text>
+    <text y="30" class="description" text-anchor="middle">These principles can help design more efficient and robust AI systems</text>
+    <text y="55" class="description" text-anchor="middle">that require less data and compute while achieving better generalization.</text>
+  </g>
+</svg>

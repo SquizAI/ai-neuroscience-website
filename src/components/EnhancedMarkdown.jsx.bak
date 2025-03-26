@@ -1,0 +1,1390 @@
+import { useState, useEffect, useRef } from 'react';
+import ReactDOM from 'react-dom';
+import ReactMarkdown from 'react-markdown';
+import { PrismLight as SyntaxHighlighter } from 'react-syntax-highlighter';
+import { vscDarkPlus } from 'react-syntax-highlighter/dist/esm/styles/prism';
+import { Prism } from 'react-syntax-highlighter';
+import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
+import AITimelineChart from './AITimelineChart';
+import FreeEnergyPrinciple from './FreeEnergyPrinciple';
+import ConsciousnessIntelligenceChart from './ConsciousnessIntelligenceChart';
+import PredictionMechanismsComparison from './PredictionMechanismsComparison';
+import ScalingLimitationsChart from './ScalingLimitationsChart';
+import AIConceptMap from './AIConceptMap';
+import AITimelineViz from './AITimelineViz';
+import InteractiveBrain from './InteractiveBrain';
+import NeuralNetworkAnimation from './NeuralNetworkAnimation';
+import FreeEnergyVisualizer from './FreeEnergyVisualizer';
+import MermaidChart from './MermaidChart';
+
+// Icons for expand/collapse functionality
+const ExpandIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+    <path fillRule="evenodd" d="M3 4a1 1 0 011-1h4a1 1 0 010 2H6.414l2.293 2.293a1 1 0 01-1.414 1.414L5 6.414V8a1 1 0 01-2 0V4zm9 1a1 1 0 010-2h4a1 1 0 011 1v4a1 1 0 01-2 0V6.414l-2.293 2.293a1 1 0 11-1.414-1.414L13.586 5H12zm-9 7a1 1 0 012 0v1.586l2.293-2.293a1 1 0 011.414 1.414L6.414 15H8a1 1 0 010 2H4a1 1 0 01-1-1v-4zm13-1a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 010-2h1.586l-2.293-2.293a1 1 0 011.414-1.414L15 13.586V12a1 1 0 011-1z" clipRule="evenodd" />
+  </svg>
+);
+
+const CollapseIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+    <path fillRule="evenodd" d="M5 10a1 1 0 011-1h8a1 1 0 110 2H6a1 1 0 01-1-1z" clipRule="evenodd" />
+  </svg>
+);
+
+// Clean, minimalist fullscreen modal component for visualizations
+const FullscreenModal = ({ isOpen, onClose, title, description, children }) => {
+  if (!isOpen) return null;
+  
+  return (
+    <motion.div 
+      className="fixed inset-0 bg-white z-50 flex justify-center items-center"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      onClick={onClose}
+    >
+      <motion.div 
+        className="w-full h-full flex flex-col overflow-hidden"
+        initial={{ scale: 0.98, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ duration: 0.2 }}
+        onClick={(e) => e.stopPropagation()} // Prevent closing when clicking on content
+      >
+        <div className="bg-white px-6 py-4 flex justify-between items-center sticky top-0 border-b border-gray-200 z-10">
+          <div>
+            <h3 className="text-lg font-medium text-gray-900">{title}</h3>
+            {description && <p className="text-gray-500 text-sm mt-1">{description}</p>}
+          </div>
+          <button 
+            onClick={onClose}
+            className="p-2 rounded-md text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors"
+            aria-label="Close fullscreen view"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <div className="flex-grow overflow-auto p-8 flex justify-center items-center relative bg-white">
+          <motion.div
+            className="w-full h-full flex justify-center items-center"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.3 }}
+          >
+            {children}
+          </motion.div>
+          
+          <motion.div 
+            className="absolute bottom-8 left-1/2 transform -translate-x-1/2 bg-gray-50 border border-gray-200 px-4 py-2 rounded-md text-gray-500 text-sm text-center max-w-md"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3, duration: 0.3 }}
+          >
+            <p>Interact with the visualization using your mouse or touch gestures</p>
+          </motion.div>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+};
+
+const EnhancedMarkdown = ({ content }) => {
+  const [expandedImage, setExpandedImage] = useState(null);
+  const [activeSection, setActiveSection] = useState(null);
+  const [fullscreenViz, setFullscreenViz] = useState(null);
+  
+  // Track scroll position to highlight current section in the table of contents
+  useEffect(() => {
+    const handleScroll = () => {
+      const headings = document.querySelectorAll('h1, h2, h3');
+      let current = '';
+
+      headings.forEach(heading => {
+        const sectionTop = heading.offsetTop - 100;
+        if (window.scrollY >= sectionTop) {
+          current = heading.id;
+        }
+      });
+
+      setActiveSection(current);
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+  
+  // Listen for custom openVisualization events
+  useEffect(() => {
+    const handleOpenVisualization = (event) => {
+      const { type, title, description } = event.detail;
+      setFullscreenViz({ type, title, description });
+    };
+    
+    document.addEventListener('openVisualization', handleOpenVisualization);
+    return () => document.removeEventListener('openVisualization', handleOpenVisualization);
+  }, []);
+  
+  // Process visualization containers after the content is rendered
+  useEffect(() => {
+    const contentRef = document.querySelector('.enhanced-markdown');
+    if (!contentRef) return;
+    
+    console.log('Processing visualization containers in the DOM');
+    
+    // Find all visualization containers in the rendered content
+    const vizContainers = contentRef.querySelectorAll('.visualization-container, div[data-type]');
+    console.log(`Found ${vizContainers.length} visualization containers in the DOM`);
+    
+    // Process each container
+    vizContainers.forEach(container => {
+      const type = container.getAttribute('data-type');
+      if (!type) {
+        console.log('Warning: Visualization container without a type attribute');
+        return;
+      }
+      
+      console.log(`Processing visualization container with type: ${type}`);
+      
+      // Clear any existing content
+      container.innerHTML = '';
+      
+      // Create a wrapper for the visualization
+      const wrapper = document.createElement('div');
+      wrapper.className = 'my-12 rounded-lg shadow-lg overflow-hidden border border-gray-200';
+      
+      // Create the header based on the visualization type
+      let title, description, gradientClass;
+      
+      switch (type) {
+        case 'brain':
+          title = 'Interactive Brain Model';
+          description = 'Explore the regions of the brain involved in cognitive processes';
+          gradientClass = 'bg-gradient-to-r from-blue-500 to-blue-700';
+          break;
+        case 'neural-network':
+          title = 'Neural Network Dynamics';
+          description = 'Visualize how neural networks process information';
+          gradientClass = 'bg-gradient-to-r from-blue-500 to-blue-700';
+          break;
+        case 'timeline':
+          title = 'AI Development Timeline';
+          description = 'Key milestones in the development of artificial intelligence';
+          gradientClass = 'bg-gradient-to-r from-blue-500 to-blue-700';
+          break;
+        case 'fep':
+          title = 'Free Energy Principle';
+          description = 'Interactive visualization of the Free Energy Principle';
+          gradientClass = 'bg-gradient-to-r from-blue-500 to-blue-700';
+          break;
+        case 'consciousness':
+          title = 'Consciousness & Intelligence';
+          description = 'Exploring the relationship between consciousness and intelligence';
+          gradientClass = 'bg-gradient-to-r from-blue-500 to-blue-700';
+          break;
+        case 'prediction':
+          title = 'Prediction Mechanisms';
+          description = 'Comparing prediction mechanisms in the brain and AI';
+          gradientClass = 'bg-gradient-to-r from-blue-500 to-blue-700';
+          break;
+        case 'scaling':
+          title = 'Scaling Limitations';
+          description = 'Visualizing the limitations of the scaling paradigm';
+          gradientClass = 'bg-gradient-to-r from-blue-500 to-blue-700';
+          break;
+        case 'conceptmap':
+          title = 'AI Concept Map';
+          description = 'Interactive map of key AI concepts and their relationships';
+          gradientClass = 'bg-gradient-to-r from-blue-500 to-blue-700';
+          break;
+        case 'free-energy-viz':
+          title = 'Free Energy Visualizer';
+          description = 'Interactive visualization of free energy principles';
+          gradientClass = 'bg-gradient-to-r from-blue-500 to-blue-700';
+          break;
+        default:
+          title = 'Interactive Visualization';
+          description = 'Explore this interactive visualization';
+          gradientClass = 'bg-gradient-to-r from-blue-500 to-blue-700';
+      }
+      
+      // Replace the container with the enhanced visualization
+      container.parentNode.replaceChild(wrapper, container);
+      
+      // Create the header
+      const header = document.createElement('div');
+      header.className = `${gradientClass} p-4 border-b flex justify-between items-center`;
+      header.innerHTML = `
+        <div>
+          <h3 class="text-lg font-semibold text-white">${title}</h3>
+          <p class="text-white text-opacity-80 text-sm">${description}</p>
+        </div>
+      `;
+      wrapper.appendChild(header);
+      
+      // Create the content container
+      const content = document.createElement('div');
+      content.className = 'p-6 bg-white flex justify-center items-center';
+      content.style.height = '400px';
+      content.style.position = 'relative';
+      wrapper.appendChild(content);
+      
+      // Render the appropriate visualization based on the type
+      const vizPlaceholder = document.createElement('div');
+      vizPlaceholder.className = 'flex items-center justify-center w-full h-full';
+      content.appendChild(vizPlaceholder);
+      
+      // Add expand button
+      const expandButton = document.createElement('button');
+      expandButton.className = 'p-2 rounded-full bg-white bg-opacity-20 hover:bg-opacity-30 transition-colors text-white absolute top-4 right-4';
+      expandButton.setAttribute('aria-label', 'Expand to fullscreen');
+      expandButton.innerHTML = `
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+          <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h4a1 1 0 010 2H6.414l2.293 2.293a1 1 0 01-1.414 1.414L5 6.414V8a1 1 0 01-2 0V4zm9 1a1 1 0 010-2h4a1 1 0 011 1v4a1 1 0 01-2 0V6.414l-2.293 2.293a1 1 0 11-1.414-1.414L13.586 5H12zm-9 7a1 1 0 012 0v1.586l2.293-2.293a1 1 0 011.414 1.414L6.414 15H8a1 1 0 010 2H4a1 1 0 01-1-1v-4zm13-1a1 1 0 011 1v4a1 1 0 01-1 1h-4a1 1 0 010-2h1.586l-2.293-2.293a1 1 0 011.414-1.414L15 13.586V12a1 1 0 011-1z" clip-rule="evenodd" />
+        </svg>
+      `;
+      header.appendChild(expandButton);
+      
+      // Add click event to expand button
+      expandButton.addEventListener('click', () => {
+        const event = new CustomEvent('openVisualization', {
+          detail: { type, title, description }
+        });
+        document.dispatchEvent(event);
+      });
+      
+      // Dynamically create and render the appropriate visualization
+      switch (type) {
+        case 'brain':
+          import('./InteractiveBrain').then(module => {
+            const InteractiveBrain = module.default;
+            ReactDOM.render(<InteractiveBrain />, vizPlaceholder);
+          }).catch(err => console.error('Failed to load InteractiveBrain:', err));
+          break;
+        case 'neural-network':
+          import('./NeuralNetworkAnimation').then(module => {
+            const NeuralNetworkAnimation = module.default;
+            ReactDOM.render(<NeuralNetworkAnimation />, vizPlaceholder);
+          }).catch(err => console.error('Failed to load NeuralNetworkAnimation:', err));
+          break;
+        case 'timeline':
+          import('./AITimelineViz').then(module => {
+            const AITimelineViz = module.default;
+            ReactDOM.render(<AITimelineViz />, vizPlaceholder);
+          }).catch(err => console.error('Failed to load AITimelineViz:', err));
+          break;
+        case 'fep':
+          import('./FreeEnergyPrinciple').then(module => {
+            const FreeEnergyPrinciple = module.default;
+            ReactDOM.render(<FreeEnergyPrinciple />, vizPlaceholder);
+          }).catch(err => console.error('Failed to load FreeEnergyPrinciple:', err));
+          break;
+        case 'consciousness':
+          import('./ConsciousnessIntelligenceChart').then(module => {
+            const ConsciousnessIntelligenceChart = module.default;
+            ReactDOM.render(<ConsciousnessIntelligenceChart />, vizPlaceholder);
+          }).catch(err => console.error('Failed to load ConsciousnessIntelligenceChart:', err));
+          break;
+        case 'prediction':
+          import('./PredictionMechanismsComparison').then(module => {
+            const PredictionMechanismsComparison = module.default;
+            ReactDOM.render(<PredictionMechanismsComparison />, vizPlaceholder);
+          }).catch(err => console.error('Failed to load PredictionMechanismsComparison:', err));
+          break;
+        case 'scaling':
+          import('./ScalingLimitationsChart').then(module => {
+            const ScalingLimitationsChart = module.default;
+            ReactDOM.render(<ScalingLimitationsChart />, vizPlaceholder);
+          }).catch(err => console.error('Failed to load ScalingLimitationsChart:', err));
+          break;
+        case 'conceptmap':
+          import('./AIConceptMap').then(module => {
+            const AIConceptMap = module.default;
+            ReactDOM.render(<AIConceptMap />, vizPlaceholder);
+          }).catch(err => console.error('Failed to load AIConceptMap:', err));
+          break;
+        case 'free-energy-viz':
+          import('./FreeEnergyVisualizer').then(module => {
+            const FreeEnergyVisualizer = module.default;
+            ReactDOM.render(<FreeEnergyVisualizer />, vizPlaceholder);
+          }).catch(err => console.error('Failed to load FreeEnergyVisualizer:', err));
+          break;
+        default:
+          vizPlaceholder.innerHTML = `<p class="text-gray-500">Visualization type '${type}' not recognized</p>`;
+      }
+    });
+  }, [content]);
+
+  // This function handles special tags to insert interactive components
+  const processContent = (content) => {
+    if (!content) {
+      console.log('Warning: No content provided to processContent');
+      return '';
+    }
+    
+    let processed = content;
+    
+    console.log('Processing markdown content with visualization tags');
+    
+    // Handle visualization tags in different formats
+    
+    // Format 1: {visualization:type} - Convert to a special marker that ReactMarkdown will preserve
+    processed = processed.replace(/\{visualization:([^}]+)\}/g, (match, type) => {
+      console.log(`Converting tag format 1: ${match} with type: ${type.trim()}`);
+      // Use a format that won't be escaped by ReactMarkdown
+      return `<div class="visualization-container" data-type="${type.trim()}"></div>`;
+    });
+    
+    // Format 2: <div class="visualization-container" data-type="type"></div>
+    // Make sure these are on their own lines to prevent paragraph wrapping
+    processed = processed.replace(/<div class="visualization-container" data-type="([^"]+)"><\/div>/g, (match, type) => {
+      console.log(`Reformatting HTML visualization container with type: ${type}`);
+      return `<div class="visualization-container" data-type="${type}"></div>`;
+    });
+    
+    // Format 3: Plain text "visualization type" on its own line
+    processed = processed.replace(/^visualization\s+([\w-]+)$/gm, (match, type) => {
+      console.log(`Converting plain text visualization: ${match} with type: ${type.trim()}`);
+      return `<div class="visualization-container" data-type="${type.trim()}"></div>`;
+    });
+    
+    // Format 4: Special case for markdown files that use HTML comments with visualization tags
+    processed = processed.replace(/<!--\s*visualization:([^>]+)\s*-->/g, (match, type) => {
+      console.log(`Converting HTML comment visualization: ${match} with type: ${type.trim()}`);
+      return `<div class="visualization-container" data-type="${type.trim()}"></div>`;
+    });
+    
+    // Format 5: Handle HTML div tags with visualization-container class that appear in the book
+    processed = processed.replace(/<div class=['"]visualization-container['"] data-type=['"]([^'"]+)['"]><\/div>/g, (match, type) => {
+      console.log(`Found visualization container in book content: ${type}`);
+      return `<div class="visualization-container" data-type="${type}"></div>`;
+    });
+    
+    // Debug: Log the final processed content
+    console.log('Final processed content contains visualization tags:', 
+                processed.includes('visualization-container'));
+    
+    return processed;
+  };
+
+  // Custom components for ReactMarkdown
+  const components = {
+    // Handle div elements to process visualization containers
+    div({ node, className, 'data-type': dataType, ...props }) {
+      // Check if this is a visualization container
+      if (className === 'visualization-container' && dataType) {
+        console.log('✅ DETECTED VISUALIZATION container:', dataType);
+        
+        // Render the appropriate visualization based on the type
+        switch (dataType) {
+          case 'brain':
+            return (
+              <div className="my-12 overflow-hidden border border-gray-200 rounded-md">
+                <div className="p-4 bg-white border-b border-gray-200 flex justify-between items-center">
+                  <div>
+                    <h3 className="text-lg font-medium text-gray-900">Interactive Brain Model</h3>
+                    <p className="text-gray-500 text-sm">Explore the regions of the brain involved in cognitive processes</p>
+                  </div>
+                  <button 
+                    onClick={() => setFullscreenViz({
+                      type: 'brain',
+                      title: 'Interactive Brain Model',
+                      description: 'Explore the regions of the brain involved in cognitive processes'
+                    })}
+                    className="p-2 rounded-md hover:bg-gray-100 transition-colors text-gray-500"
+                    aria-label="Expand to fullscreen"
+                  >
+                    <ExpandIcon />
+                  </button>
+                </div>
+                <div className="p-8 bg-white flex justify-center" style={{ height: '400px' }}>
+                  <InteractiveBrain />
+                </div>
+              </div>
+            );
+          case 'neural-network':
+            return (
+              <div className="my-12 overflow-hidden border border-gray-200 rounded-md">
+                <div className="p-4 bg-white border-b border-gray-200 flex justify-between items-center">
+                  <div>
+                    <h3 className="text-lg font-medium text-gray-900">Neural Network Dynamics</h3>
+                    <p className="text-gray-500 text-sm">Visualize how neural networks process information</p>
+                  </div>
+                  <button 
+                    onClick={() => setFullscreenViz({
+                      type: 'neural-network',
+                      title: 'Neural Network Dynamics',
+                      description: 'Visualize how neural networks process information'
+                    })}
+                    className="p-2 rounded-md hover:bg-gray-100 transition-colors text-gray-500"
+                    aria-label="Expand to fullscreen"
+                  >
+                    <ExpandIcon />
+                  </button>
+                </div>
+                <div className="p-8 bg-white flex justify-center" style={{ height: '400px' }}>
+                  <NeuralNetworkAnimation />
+                </div>
+              </div>
+            );
+          case 'timeline':
+            return (
+              <div className="my-12 overflow-hidden border border-gray-200 rounded-md">
+                <div className="p-4 bg-white border-b border-gray-200 flex justify-between items-center">
+                  <div>
+                    <h3 className="text-lg font-medium text-gray-900">AI Development Timeline</h3>
+                    <p className="text-gray-500 text-sm">Key milestones in the development of artificial intelligence</p>
+                  </div>
+                  <button 
+                    onClick={() => setFullscreenViz({
+                      type: 'timeline',
+                      title: 'AI Development Timeline',
+                      description: 'Key milestones in the development of artificial intelligence'
+                    })}
+                    className="p-2 rounded-md hover:bg-gray-100 transition-colors text-gray-500"
+                    aria-label="Expand to fullscreen"
+                  >
+                    <ExpandIcon />
+                  </button>
+                </div>
+                <div className="p-8 bg-white">
+                  <AITimelineViz />
+                </div>
+              </div>
+            );
+          case 'fep':
+            return (
+              <div className="my-12 overflow-hidden border border-gray-200 rounded-md">
+                <div className="p-4 bg-white border-b border-gray-200 flex justify-between items-center">
+                  <div>
+                    <h3 className="text-lg font-medium text-gray-900">Free Energy Principle</h3>
+                    <p className="text-gray-500 text-sm">Interactive visualization of the Free Energy Principle</p>
+                  </div>
+                  <button 
+                    onClick={() => setFullscreenViz({
+                      type: 'fep',
+                      title: 'Free Energy Principle',
+                      description: 'Interactive visualization of the Free Energy Principle'
+                    })}
+                    className="p-2 rounded-md hover:bg-gray-100 transition-colors text-gray-500"
+                    aria-label="Expand to fullscreen"
+                  >
+                    <ExpandIcon />
+                  </button>
+                </div>
+                <div className="p-8 bg-white">
+                  <FreeEnergyPrinciple />
+                </div>
+              </div>
+            );
+          case 'consciousness':
+            return (
+              <div className="my-12 overflow-hidden border border-gray-200 rounded-md">
+                <div className="p-4 bg-white border-b border-gray-200 flex justify-between items-center">
+                  <div>
+                    <h3 className="text-lg font-medium text-gray-900">Consciousness & Intelligence</h3>
+                    <p className="text-gray-500 text-sm">Exploring the relationship between consciousness and intelligence</p>
+                  </div>
+                  <button 
+                    onClick={() => setFullscreenViz({
+                      type: 'consciousness',
+                      title: 'Consciousness & Intelligence',
+                      description: 'Exploring the relationship between consciousness and intelligence'
+                    })}
+                    className="p-2 rounded-md hover:bg-gray-100 transition-colors text-gray-500"
+                    aria-label="Expand to fullscreen"
+                  >
+                    <ExpandIcon />
+                  </button>
+                </div>
+                <div className="p-8 bg-white">
+                  <ConsciousnessIntelligenceChart />
+                </div>
+              </div>
+            );
+          case 'prediction':
+            return (
+              <div className="my-8 rounded-lg shadow-md overflow-hidden">
+                <div className="bg-gradient-to-r from-amber-100 to-orange-100 p-4 border-b flex justify-between items-center">
+                  <div>
+                    <h3 className="text-lg font-semibold text-amber-800">Prediction Mechanisms</h3>
+                    <p className="text-amber-600 text-sm">Comparing prediction mechanisms in the brain and AI</p>
+                  </div>
+                  <button 
+                    onClick={() => setFullscreenViz({
+                      type: 'prediction',
+                      title: 'Prediction Mechanisms',
+                      description: 'Comparing prediction mechanisms in the brain and AI'
+                    })}
+                    className="p-2 rounded-full bg-amber-100 hover:bg-amber-200 transition-colors text-amber-700"
+                    aria-label="Expand to fullscreen"
+                  >
+                    <ExpandIcon />
+                  </button>
+                </div>
+                <div className="p-6 bg-white">
+                  <PredictionMechanismsComparison />
+                </div>
+              </div>
+            );
+          case 'scaling':
+            return (
+              <div className="my-8 rounded-lg shadow-md overflow-hidden">
+                <div className="bg-gradient-to-r from-red-100 to-rose-100 p-4 border-b flex justify-between items-center">
+                  <div>
+                    <h3 className="text-lg font-semibold text-red-800">Scaling Limitations</h3>
+                    <p className="text-red-600 text-sm">Exploring the limitations of scaling in AI systems</p>
+                  </div>
+                  <button 
+                    onClick={() => setFullscreenViz({
+                      type: 'scaling',
+                      title: 'Scaling Limitations',
+                      description: 'Exploring the limitations of scaling in AI systems'
+                    })}
+                    className="p-2 rounded-full bg-red-100 hover:bg-red-200 transition-colors text-red-700"
+                    aria-label="Expand to fullscreen"
+                  >
+                    <ExpandIcon />
+                  </button>
+                </div>
+                <div className="p-6 bg-white">
+                  <ScalingLimitationsChart />
+                </div>
+              </div>
+            );
+          case 'conceptmap':
+            return (
+              <div className="my-8 rounded-lg shadow-md overflow-hidden">
+                <div className="bg-gradient-to-r from-sky-100 to-blue-100 p-4 border-b flex justify-between items-center">
+                  <div>
+                    <h3 className="text-lg font-semibold text-sky-800">AI Concept Map</h3>
+                    <p className="text-sky-600 text-sm">Interactive map of key AI concepts and their relationships</p>
+                  </div>
+                  <button 
+                    onClick={() => setFullscreenViz({
+                      type: 'conceptmap',
+                      title: 'AI Concept Map',
+                      description: 'Interactive map of key AI concepts and their relationships'
+                    })}
+                    className="p-2 rounded-full bg-sky-100 hover:bg-sky-200 transition-colors text-sky-700"
+                    aria-label="Expand to fullscreen"
+                  >
+                    <ExpandIcon />
+                  </button>
+                </div>
+                <div className="p-6 bg-white">
+                  <AIConceptMap />
+                </div>
+              </div>
+            );
+          case 'free-energy-viz':
+            return (
+              <div className="my-8 rounded-lg shadow-md overflow-hidden">
+                <div className="bg-gradient-to-r from-emerald-100 to-green-100 p-4 border-b flex justify-between items-center">
+                  <div>
+                    <h3 className="text-lg font-semibold text-emerald-800">Free Energy Visualizer</h3>
+                    <p className="text-emerald-600 text-sm">Interactive visualization of the Free Energy Principle in action</p>
+                  </div>
+                  <button 
+                    onClick={() => setFullscreenViz({
+                      type: 'free-energy-viz',
+                      title: 'Free Energy Visualizer',
+                      description: 'Interactive visualization of the Free Energy Principle in action'
+                    })}
+                    className="p-2 rounded-full bg-emerald-100 hover:bg-emerald-200 transition-colors text-emerald-700"
+                    aria-label="Expand to fullscreen"
+                  >
+                    <ExpandIcon />
+                  </button>
+                </div>
+                <div className="p-6 bg-white">
+                  <FreeEnergyVisualizer />
+                </div>
+              </div>
+            );
+          default:
+            console.log('Unknown visualization type:', dataType);
+            return <div {...props} />;  
+        }
+      }
+      
+      // Pass through other divs unchanged
+      return <div className={className} {...props} />;
+    },
+    // Customized paragraph handler that can render visualizations and apply styles
+    p({ node, children, ...props }) {
+      // Convert children to string for processing
+      const content = String(children);
+      
+      // Look for HTML-style visualization containers that our processContent function created
+      if (content.includes('<div class="visualization-container"')) {
+        const match = content.match(/data-type="([^"]+)"/); 
+        if (match) {
+          const visualizationType = match[1];
+          console.log('✅ DETECTED VISUALIZATION in paragraph:', visualizationType);
+          
+          // Render the appropriate visualization based on the type
+          switch (visualizationType) {
+            case 'brain':
+              return (
+                <div className="my-12 overflow-hidden border border-gray-200 rounded-md">
+                  <div className="p-4 bg-white border-b border-gray-200 flex justify-between items-center">
+                    <div>
+                      <h3 className="text-lg font-medium text-gray-900">Interactive Brain Model</h3>
+                      <p className="text-gray-500 text-sm">Explore the regions of the brain involved in cognitive processes</p>
+                    </div>
+                    <button 
+                      onClick={() => setFullscreenViz({
+                        type: 'brain',
+                        title: 'Interactive Brain Model',
+                        description: 'Explore the regions of the brain involved in cognitive processes'
+                      })}
+                      className="p-2 rounded-md hover:bg-gray-100 transition-colors text-gray-500"
+                      aria-label="Expand to fullscreen"
+                    >
+                      <ExpandIcon />
+                    </button>
+                  </div>
+                  <div className="p-8 bg-white flex justify-center" style={{ height: '400px' }}>
+                    <InteractiveBrain />
+                  </div>
+                </div>
+              );
+            case 'neural-network':
+              return (
+                <div className="my-12 overflow-hidden border border-gray-200 rounded-md">
+                  <div className="p-4 bg-white border-b border-gray-200 flex justify-between items-center">
+                    <div>
+                      <h3 className="text-lg font-medium text-gray-900">Neural Network Dynamics</h3>
+                      <p className="text-gray-500 text-sm">Visualize how neural networks process information</p>
+                    </div>
+                    <button 
+                      onClick={() => setFullscreenViz({
+                        type: 'neural-network',
+                        title: 'Neural Network Dynamics',
+                        description: 'Visualize how neural networks process information'
+                      })}
+                      className="p-2 rounded-md hover:bg-gray-100 transition-colors text-gray-500"
+                      aria-label="Expand to fullscreen"
+                    >
+                      <ExpandIcon />
+                    </button>
+                  </div>
+                  <div className="p-8 bg-white flex justify-center" style={{ height: '400px' }}>
+                    <NeuralNetworkAnimation />
+                  </div>
+                </div>
+              );
+            case 'timeline':
+              return (
+                <div className="my-12 overflow-hidden border border-gray-200 rounded-md">
+                  <div className="p-4 bg-white border-b border-gray-200 flex justify-between items-center">
+                    <div>
+                      <h3 className="text-lg font-medium text-gray-900">AI Development Timeline</h3>
+                      <p className="text-gray-500 text-sm">Key milestones in the development of artificial intelligence</p>
+                    </div>
+                    <button 
+                      onClick={() => setFullscreenViz({
+                        type: 'timeline',
+                        title: 'AI Development Timeline',
+                        description: 'Key milestones in the development of artificial intelligence'
+                      })}
+                      className="p-2 rounded-md hover:bg-gray-100 transition-colors text-gray-500"
+                      aria-label="Expand to fullscreen"
+                    >
+                      <ExpandIcon />
+                    </button>
+                  </div>
+                  <div className="p-8 bg-white">
+                    <AITimelineViz />
+                  </div>
+                </div>
+              );
+            case 'fep':
+              return (
+                <div className="my-12 overflow-hidden border border-gray-200 rounded-md">
+                  <div className="p-4 bg-white border-b border-gray-200 flex justify-between items-center">
+                    <div>
+                      <h3 className="text-lg font-medium text-gray-900">Free Energy Principle</h3>
+                      <p className="text-gray-500 text-sm">Interactive visualization of the Free Energy Principle</p>
+                    </div>
+                    <button 
+                      onClick={() => setFullscreenViz({
+                        type: 'fep',
+                        title: 'Free Energy Principle',
+                        description: 'Interactive visualization of the Free Energy Principle'
+                      })}
+                      className="p-2 rounded-md hover:bg-gray-100 transition-colors text-gray-500"
+                      aria-label="Expand to fullscreen"
+                    >
+                      <ExpandIcon />
+                    </button>
+                  </div>
+                  <div className="p-8 bg-white">
+                    <FreeEnergyPrinciple />
+                  </div>
+                </div>
+              );
+            case 'consciousness':
+              return (
+                <div className="my-12 overflow-hidden border border-gray-200 rounded-md">
+                  <div className="p-4 bg-white border-b border-gray-200 flex justify-between items-center">
+                    <div>
+                      <h3 className="text-lg font-medium text-gray-900">Consciousness & Intelligence</h3>
+                      <p className="text-gray-500 text-sm">Exploring the relationship between consciousness and intelligence</p>
+                    </div>
+                    <button 
+                      onClick={() => setFullscreenViz({
+                        type: 'consciousness',
+                        title: 'Consciousness & Intelligence',
+                        description: 'Exploring the relationship between consciousness and intelligence'
+                      })}
+                      className="p-2 rounded-md hover:bg-gray-100 transition-colors text-gray-500"
+                      aria-label="Expand to fullscreen"
+                    >
+                      <ExpandIcon />
+                    </button>
+                  </div>
+                  <div className="p-8 bg-white">
+                    <ConsciousnessIntelligenceChart />
+                  </div>
+                </div>
+              );
+            case 'prediction':
+              return (
+                <div className="my-8 rounded-lg shadow-md overflow-hidden">
+                  <div className="bg-gradient-to-r from-amber-100 to-orange-100 p-4 border-b flex justify-between items-center">
+                    <div>
+                      <h3 className="text-lg font-semibold text-amber-800">Prediction Mechanisms</h3>
+                      <p className="text-amber-600 text-sm">Comparing prediction mechanisms in the brain and AI</p>
+                    </div>
+                    <button 
+                      onClick={() => setFullscreenViz({
+                        type: 'prediction',
+                        title: 'Prediction Mechanisms',
+                        description: 'Comparing prediction mechanisms in the brain and AI'
+                      })}
+                      className="p-2 rounded-full bg-amber-100 hover:bg-amber-200 transition-colors text-amber-700"
+                      aria-label="Expand to fullscreen"
+                    >
+                      <ExpandIcon />
+                    </button>
+                  </div>
+                  <div className="p-6 bg-white">
+                    <PredictionMechanismsComparison />
+                  </div>
+                </div>
+              );
+            case 'scaling':
+              return (
+                <div className="my-8 rounded-lg shadow-md overflow-hidden">
+                  <div className="bg-gradient-to-r from-red-100 to-rose-100 p-4 border-b flex justify-between items-center">
+                    <div>
+                      <h3 className="text-lg font-semibold text-red-800">Scaling Limitations</h3>
+                      <p className="text-red-600 text-sm">Exploring the limitations of scaling in AI systems</p>
+                    </div>
+                    <button 
+                      onClick={() => setFullscreenViz({
+                        type: 'scaling',
+                        title: 'Scaling Limitations',
+                        description: 'Exploring the limitations of scaling in AI systems'
+                      })}
+                      className="p-2 rounded-full bg-red-100 hover:bg-red-200 transition-colors text-red-700"
+                      aria-label="Expand to fullscreen"
+                    >
+                      <ExpandIcon />
+                    </button>
+                  </div>
+                  <div className="p-6 bg-white">
+                    <ScalingLimitationsChart />
+                  </div>
+                </div>
+              );
+            case 'conceptmap':
+              return (
+                <div className="my-8 rounded-lg shadow-md overflow-hidden">
+                  <div className="bg-gradient-to-r from-sky-100 to-blue-100 p-4 border-b flex justify-between items-center">
+                    <div>
+                      <h3 className="text-lg font-semibold text-sky-800">AI Concept Map</h3>
+                      <p className="text-sky-600 text-sm">Interactive map of key AI concepts and their relationships</p>
+                    </div>
+                    <button 
+                      onClick={() => setFullscreenViz({
+                        type: 'conceptmap',
+                        title: 'AI Concept Map',
+                        description: 'Interactive map of key AI concepts and their relationships'
+                      })}
+                      className="p-2 rounded-full bg-sky-100 hover:bg-sky-200 transition-colors text-sky-700"
+                      aria-label="Expand to fullscreen"
+                    >
+                      <ExpandIcon />
+                    </button>
+                  </div>
+                  <div className="p-6 bg-white">
+                    <AIConceptMap />
+                  </div>
+                </div>
+              );
+            case 'free-energy-viz':
+              return (
+                <div className="my-8 rounded-lg shadow-md overflow-hidden">
+                  <div className="bg-gradient-to-r from-emerald-100 to-green-100 p-4 border-b flex justify-between items-center">
+                    <div>
+                      <h3 className="text-lg font-semibold text-emerald-800">Free Energy Visualizer</h3>
+                      <p className="text-emerald-600 text-sm">Interactive visualization of the Free Energy Principle in action</p>
+                    </div>
+                    <button 
+                      onClick={() => setFullscreenViz({
+                        type: 'free-energy-viz',
+                        title: 'Free Energy Visualizer',
+                        description: 'Interactive visualization of the Free Energy Principle in action'
+                      })}
+                      className="p-2 rounded-full bg-emerald-100 hover:bg-emerald-200 transition-colors text-emerald-700"
+                      aria-label="Expand to fullscreen"
+                    >
+                      <ExpandIcon />
+                    </button>
+                  </div>
+                  <div className="p-6 bg-white">
+                    <FreeEnergyVisualizer />
+                  </div>
+                </div>
+              );
+            default:
+              console.log('Unknown visualization type:', visualizationType);
+              return <p {...props}>{children}</p>;
+          }
+        }
+      }
+      
+      // Handle regular paragraphs
+      return <p {...props}>{children}</p>;
+    },
+    
+    // Enhanced code block with syntax highlighting and copy button
+    code({ node, inline, className, children, ...props }) {
+      const match = /language-(\w+)/.exec(className || '');
+      const language = match ? match[1] : '';
+      const [copied, setCopied] = useState(false);
+      const codeRef = useRef(null);
+      
+      const handleCopy = () => {
+        if (codeRef.current) {
+          const code = codeRef.current.textContent;
+          navigator.clipboard.writeText(code);
+          setCopied(true);
+          setTimeout(() => setCopied(false), 2000);
+        }
+      };
+      
+      return !inline && language ? (
+        <div className="my-10 overflow-hidden border border-gray-200 rounded-md group">
+          <div className="bg-gray-50 px-4 py-3 flex justify-between items-center border-b border-gray-200">
+            {language && (
+              <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                {language}
+              </span>
+            )}
+            <button
+              onClick={handleCopy}
+              className="text-gray-400 hover:text-gray-600 transition-colors p-1.5 rounded-md hover:bg-gray-100 focus:outline-none"
+              aria-label="Copy code"
+            >
+              {copied ? (
+                <>
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-500" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                  </svg>
+                </>
+              ) : (
+                <>
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                    <path d="M8 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z" />
+                    <path d="M6 3a2 2 0 00-2 2v11a2 2 0 002 2h8a2 2 0 002-2V5a2 2 0 00-2-2 3 3 0 01-3 3H9a3 3 0 01-3-3z" />
+                  </svg>
+                </>
+              )}
+            </button>
+          </div>
+          <div ref={codeRef} className="relative">
+            <SyntaxHighlighter
+              style={vscDarkPlus}
+              language={language}
+              PreTag="div"
+              className="!bg-gray-900 !rounded-none max-h-[500px] overflow-auto"
+              showLineNumbers
+              wrapLines
+              {...props}
+            >
+              {String(children).replace(/\n$/, '')}
+            </SyntaxHighlighter>
+          </div>
+        </div>
+      ) : (
+        <code className="px-2 py-1 mx-1 bg-gray-100 rounded-md text-pink-600 text-sm font-mono border border-gray-200" {...props}>
+          {children}
+        </code>
+      );
+    },
+    
+    // Clean, minimalist image handler with subtle hover effects
+    img({ node, ...props }) {
+      return (
+        <div className="my-10 flex justify-center">
+          <div className="relative group max-w-2xl overflow-hidden border border-gray-200 rounded-md transition-all duration-300">
+            <img
+              {...props}
+              className="w-full h-auto object-cover cursor-pointer transition-all duration-300 group-hover:brightness-95"
+              onClick={() => setExpandedImage(props.src)}
+              alt={props.alt || 'Image'}
+              loading="lazy"
+            />
+            <div className="absolute inset-0 bg-white/0 group-hover:bg-white/10 transition-all duration-300 flex items-center justify-center opacity-0 group-hover:opacity-100">
+              <button 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setExpandedImage(props.src);
+                }}
+                className="bg-white text-gray-800 py-2 px-4 rounded-md text-sm font-medium hover:bg-gray-100 transition-colors shadow-sm"
+                aria-label="View fullscreen"
+              >
+                View Fullscreen
+              </button>
+            </div>
+          </div>
+          {props.alt && (
+            <p className="text-sm text-gray-500 mt-3 text-center max-w-2xl">
+              {props.alt}
+            </p>
+          )}
+        </div>
+      );
+    },
+    
+    // Clean, minimalist heading styles with automatic ID for anchor links
+    h1: ({ node, ...props }) => {
+      const id = props.children.toString().toLowerCase().replace(/\s+/g, '-');
+      return (
+        <h1 
+          id={id} 
+          className="text-3xl font-medium mt-12 mb-6 text-gray-900 border-b pb-3 border-gray-200 relative"
+          {...props} 
+        >
+          {props.children}
+        </h1>
+      );
+    },
+    h2: ({ node, ...props }) => {
+      const id = props.children.toString().toLowerCase().replace(/\s+/g, '-');
+      return (
+        <h2 
+          id={id} 
+          className="text-2xl font-medium mt-10 mb-4 text-gray-800 relative"
+          {...props} 
+        >
+          {props.children}
+        </h2>
+      );
+    },
+    h3: ({ node, ...props }) => {
+      const id = props.children.toString().toLowerCase().replace(/\s+/g, '-');
+      return (
+        <h3 
+          id={id} 
+          className="text-xl font-medium mt-8 mb-3 text-gray-700 relative"
+          {...props} 
+        >
+          {props.children}
+        </h3>
+      );
+    },
+    
+    // Enhanced styling for regular paragraphs
+    p: ({ node, children, ...props }) => {
+      // Convert children to string for processing
+      const content = String(children);
+      
+      // Look for HTML-style visualization containers that our processContent function created
+      if (content.includes('<div class="visualization-container"')) {
+        const match = content.match(/data-type="([^"]+)"/);
+        if (match) {
+          const visualizationType = match[1];
+          console.log('✅ DETECTED VISUALIZATION in paragraph:', visualizationType);
+          
+          // Render the appropriate visualization based on the type
+          switch (visualizationType) {
+            case 'brain':
+              return (
+                <div className="my-8 rounded-lg shadow-lg overflow-hidden border border-purple-100">
+                  <div className="bg-gradient-to-r from-purple-600 to-blue-600 p-4 border-b flex justify-between items-center">
+                    <div>
+                      <h3 className="text-lg font-semibold text-white">Interactive Brain Model</h3>
+                      <p className="text-purple-100 text-sm">Explore the regions of the brain involved in cognitive processes</p>
+                    </div>
+                    <button 
+                      onClick={() => setFullscreenViz({
+                        type: 'brain',
+                        title: 'Interactive Brain Model',
+                        description: 'Explore the regions of the brain involved in cognitive processes'
+                      })}
+                      className="p-2 rounded-full bg-white bg-opacity-20 hover:bg-opacity-30 transition-colors text-white"
+                      aria-label="Expand to fullscreen"
+                    >
+                      <ExpandIcon />
+                    </button>
+                  </div>
+                  <div className="p-6 bg-white flex justify-center" style={{ height: '400px' }}>
+                    <InteractiveBrain />
+                  </div>
+                </div>
+              );
+            case 'neural-network':
+              return (
+                <div className="my-8 rounded-lg shadow-lg overflow-hidden border border-blue-100">
+                  <div className="bg-gradient-to-r from-blue-600 to-cyan-600 p-4 border-b flex justify-between items-center">
+                    <div>
+                      <h3 className="text-lg font-semibold text-white">Neural Network Dynamics</h3>
+                      <p className="text-blue-100 text-sm">Visualize how neural networks process information</p>
+                    </div>
+                    <button 
+                      onClick={() => setFullscreenViz({
+                        type: 'neural-network',
+                        title: 'Neural Network Dynamics',
+                        description: 'Visualize how neural networks process information'
+                      })}
+                      className="p-2 rounded-full bg-white bg-opacity-20 hover:bg-opacity-30 transition-colors text-white"
+                      aria-label="Expand to fullscreen"
+                    >
+                      <ExpandIcon />
+                    </button>
+                  </div>
+                  <div className="p-6 bg-white flex justify-center" style={{ height: '400px' }}>
+                    <NeuralNetworkAnimation />
+                  </div>
+                </div>
+              );
+            case 'timeline':
+              return (
+                <div className="my-8 rounded-lg shadow-lg overflow-hidden border border-indigo-100">
+                  <div className="bg-gradient-to-r from-indigo-600 to-purple-600 p-4 border-b flex justify-between items-center">
+                    <div>
+                      <h3 className="text-lg font-semibold text-white">AI Development Timeline</h3>
+                      <p className="text-indigo-100 text-sm">Key milestones in the development of artificial intelligence</p>
+                    </div>
+                    <button 
+                      onClick={() => setFullscreenViz({
+                        type: 'timeline',
+                        title: 'AI Development Timeline',
+                        description: 'Key milestones in the development of artificial intelligence'
+                      })}
+                      className="p-2 rounded-full bg-white bg-opacity-20 hover:bg-opacity-30 transition-colors text-white"
+                      aria-label="Expand to fullscreen"
+                    >
+                      <ExpandIcon />
+                    </button>
+                  </div>
+                  <div className="p-6 bg-white">
+                    <AITimelineViz />
+                  </div>
+                </div>
+              );
+            case 'fep':
+              return (
+                <div className="my-8 rounded-lg shadow-lg overflow-hidden border border-green-100">
+                  <div className="bg-gradient-to-r from-green-600 to-teal-600 p-4 border-b flex justify-between items-center">
+                    <div>
+                      <h3 className="text-lg font-semibold text-white">Free Energy Principle</h3>
+                      <p className="text-green-100 text-sm">Interactive visualization of the Free Energy Principle</p>
+                    </div>
+                    <button 
+                      onClick={() => setFullscreenViz({
+                        type: 'fep',
+                        title: 'Free Energy Principle',
+                        description: 'Interactive visualization of the Free Energy Principle'
+                      })}
+                      className="p-2 rounded-full bg-white bg-opacity-20 hover:bg-opacity-30 transition-colors text-white"
+                      aria-label="Expand to fullscreen"
+                    >
+                      <ExpandIcon />
+                    </button>
+                  </div>
+                  <div className="p-6 bg-white">
+                    <FreeEnergyPrinciple />
+                  </div>
+                </div>
+              );
+            case 'consciousness':
+              return (
+                <div className="my-8 rounded-lg shadow-lg overflow-hidden border border-pink-100">
+                  <div className="bg-gradient-to-r from-pink-600 to-rose-600 p-4 border-b flex justify-between items-center">
+                    <div>
+                      <h3 className="text-lg font-semibold text-white">Consciousness & Intelligence</h3>
+                      <p className="text-pink-100 text-sm">Exploring the relationship between consciousness and intelligence</p>
+                    </div>
+                    <button 
+                      onClick={() => setFullscreenViz({
+                        type: 'consciousness',
+                        title: 'Consciousness & Intelligence',
+                        description: 'Exploring the relationship between consciousness and intelligence'
+                      })}
+                      className="p-2 rounded-full bg-white bg-opacity-20 hover:bg-opacity-30 transition-colors text-white"
+                      aria-label="Expand to fullscreen"
+                    >
+                      <ExpandIcon />
+                    </button>
+                  </div>
+                  <div className="p-6 bg-white">
+                    <ConsciousnessIntelligenceChart />
+                  </div>
+                </div>
+              );
+            case 'prediction':
+              return (
+                <div className="my-8 rounded-lg shadow-lg overflow-hidden border border-amber-100">
+                  <div className="bg-gradient-to-r from-amber-600 to-orange-600 p-4 border-b flex justify-between items-center">
+                    <div>
+                      <h3 className="text-lg font-semibold text-white">Prediction Mechanisms</h3>
+                      <p className="text-amber-100 text-sm">Comparing prediction mechanisms in the brain and AI</p>
+                    </div>
+                    <button 
+                      onClick={() => setFullscreenViz({
+                        type: 'prediction',
+                        title: 'Prediction Mechanisms',
+                        description: 'Comparing prediction mechanisms in the brain and AI'
+                      })}
+                      className="p-2 rounded-full bg-white bg-opacity-20 hover:bg-opacity-30 transition-colors text-white"
+                      aria-label="Expand to fullscreen"
+                    >
+                      <ExpandIcon />
+                    </button>
+                  </div>
+                  <div className="p-6 bg-white">
+                    <PredictionMechanismsComparison />
+                  </div>
+                </div>
+              );
+            case 'scaling':
+              return (
+                <div className="my-8 rounded-lg shadow-lg overflow-hidden border border-red-100">
+                  <div className="bg-gradient-to-r from-red-600 to-rose-600 p-4 border-b flex justify-between items-center">
+                    <div>
+                      <h3 className="text-lg font-semibold text-white">Scaling Limitations</h3>
+                      <p className="text-red-100 text-sm">Exploring the limitations of scaling in AI systems</p>
+                    </div>
+                    <button 
+                      onClick={() => setFullscreenViz({
+                        type: 'scaling',
+                        title: 'Scaling Limitations',
+                        description: 'Exploring the limitations of scaling in AI systems'
+                      })}
+                      className="p-2 rounded-full bg-white bg-opacity-20 hover:bg-opacity-30 transition-colors text-white"
+                      aria-label="Expand to fullscreen"
+                    >
+                      <ExpandIcon />
+                    </button>
+                  </div>
+                  <div className="p-6 bg-white">
+                    <ScalingLimitationsChart />
+                  </div>
+                </div>
+              );
+            case 'conceptmap':
+              return (
+                <div className="my-8 rounded-lg shadow-lg overflow-hidden border border-sky-100">
+                  <div className="bg-gradient-to-r from-sky-600 to-blue-600 p-4 border-b flex justify-between items-center">
+                    <div>
+                      <h3 className="text-lg font-semibold text-white">AI Concept Map</h3>
+                      <p className="text-sky-100 text-sm">Interactive map of key AI concepts and their relationships</p>
+                    </div>
+                    <button 
+                      onClick={() => setFullscreenViz({
+                        type: 'conceptmap',
+                        title: 'AI Concept Map',
+                        description: 'Interactive map of key AI concepts and their relationships'
+                      })}
+                      className="p-2 rounded-full bg-white bg-opacity-20 hover:bg-opacity-30 transition-colors text-white"
+                      aria-label="Expand to fullscreen"
+                    >
+                      <ExpandIcon />
+                    </button>
+                  </div>
+                  <div className="p-6 bg-white">
+                    <AIConceptMap />
+                  </div>
+                </div>
+              );
+            case 'free-energy-viz':
+              return (
+                <div className="my-8 rounded-lg shadow-lg overflow-hidden border border-emerald-100">
+                  <div className="bg-gradient-to-r from-emerald-600 to-green-600 p-4 border-b flex justify-between items-center">
+                    <div>
+                      <h3 className="text-lg font-semibold text-white">Free Energy Visualizer</h3>
+                      <p className="text-emerald-100 text-sm">Interactive visualization of the Free Energy Principle in action</p>
+                    </div>
+                    <button 
+                      onClick={() => setFullscreenViz({
+                        type: 'free-energy-viz',
+                        title: 'Free Energy Visualizer',
+                        description: 'Interactive visualization of the Free Energy Principle in action'
+                      })}
+                      className="p-2 rounded-full bg-white bg-opacity-20 hover:bg-opacity-30 transition-colors text-white"
+                      aria-label="Expand to fullscreen"
+                    >
+                      <ExpandIcon />
+                    </button>
+                  </div>
+                  <div className="p-6 bg-white">
+                    <FreeEnergyVisualizer />
+                  </div>
+                </div>
+              );
+            default:
+              console.log('Unknown visualization type:', visualizationType);
+              return <p className="text-lg leading-relaxed text-gray-700 my-4" {...props}>{children}</p>;
+          }
+        }
+      }
+      
+      // Handle regular paragraphs with enhanced styling
+      return <p className="text-lg leading-relaxed text-gray-700 my-4" {...props}>{children}</p>;
+    },
+    
+    // Other styled elements with enhanced styling
+    ul: ({ node, ...props }) => <ul className="list-disc pl-8 my-6 space-y-3 text-gray-700" {...props} />,
+    ol: ({ node, ...props }) => <ol className="list-decimal pl-8 my-6 space-y-3 text-gray-700" {...props} />,
+    li: ({ node, ...props }) => <li className="text-lg text-gray-700 pl-2" {...props} />,
+    blockquote: ({ node, ...props }) => (
+      <blockquote className="border-l-4 border-blue-400 pl-6 py-4 my-6 bg-blue-50 rounded-r-md text-gray-700 italic shadow-sm" {...props} />
+    ),
+    a: ({ node, ...props }) => (
+      <a className="text-blue-600 hover:text-blue-800 font-medium transition-colors duration-200 border-b border-blue-200 hover:border-blue-500" {...props} />
+    ),
+    table: ({ node, ...props }) => (
+      <div className="overflow-x-auto my-8 rounded-lg shadow-md">
+        <table className="min-w-full divide-y divide-gray-200 border" {...props} />
+      </div>
+    ),
+    thead: ({ node, ...props }) => <thead className="bg-gray-100" {...props} />,
+    th: ({ node, ...props }) => (
+      <th className="px-6 py-4 text-left text-sm font-semibold text-gray-700 uppercase tracking-wider" {...props} />
+    ),
+    tbody: ({ node, ...props }) => <tbody className="bg-white divide-y divide-gray-200" {...props} />,
+    tr: ({ node, ...props }) => <tr className="hover:bg-gray-50 transition-colors duration-150" {...props} />,
+    td: ({ node, ...props }) => <td className="px-6 py-4 text-base text-gray-700" {...props} />,
+  };
+
+  // Process the content to handle special tags
+  const processedContent = processContent(content);
+
+  // Render the markdown with custom components
+  return (
+    <div className="enhanced-markdown prose prose-lg max-w-none">
+      {/* Render the processed markdown content */}
+      <ReactMarkdown 
+        components={components}
+        remarkPlugins={[]}
+        rehypePlugins={[]}
+        skipHtml={false}
+        unwrapDisallowed={false}
+        className="prose-headings:text-gray-900 prose-headings:font-medium prose-h1:text-3xl prose-h1:mt-12 prose-h1:mb-6 prose-h1:border-b prose-h1:pb-3 prose-h1:border-gray-200 prose-h2:text-2xl prose-h2:mt-10 prose-h2:mb-4 prose-h2:text-gray-800 prose-p:text-lg prose-p:leading-relaxed prose-p:text-gray-700 prose-p:my-4 prose-li:text-lg prose-li:text-gray-700"
+      >
+        {processedContent}
+      </ReactMarkdown>
+      
+      {/* Fullscreen image modal with enhanced styling */}
+      <AnimatePresence>
+        {expandedImage && (
+          <motion.div 
+            className="fixed inset-0 bg-black/90 z-50 flex justify-center items-center p-4 backdrop-blur-sm"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setExpandedImage(null)}
+          >
+            <motion.div 
+              className="relative max-w-7xl w-full max-h-[90vh] flex flex-col items-center"
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              transition={{ type: 'spring', damping: 25 }}
+            >
+              <div className="absolute top-0 right-0 z-10 flex space-x-2">
+                <a 
+                  href={expandedImage} 
+                  download
+                  onClick={(e) => e.stopPropagation()}
+                  className="p-3 rounded-full bg-white/10 hover:bg-white/20 transition-colors backdrop-blur-sm group"
+                  aria-label="Download image"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white group-hover:text-blue-200 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                  </svg>
+                </a>
+                <button 
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setExpandedImage(null);
+                  }}
+                  className="p-3 rounded-full bg-white/10 hover:bg-white/20 transition-colors backdrop-blur-sm group"
+                  aria-label="Close fullscreen image"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-white group-hover:text-red-200 transition-colors" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+              
+              <motion.img 
+                src={expandedImage} 
+                alt="Expanded view" 
+                className="max-w-full max-h-[80vh] object-contain rounded-lg shadow-2xl"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.2 }}
+              />
+              
+              <motion.div 
+                className="mt-4 bg-white/10 px-6 py-3 rounded-full backdrop-blur-sm text-white text-center max-w-2xl"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3 }}
+              >
+                <p>Use mouse wheel to zoom or drag to pan the image</p>
+              </motion.div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+      
+      {/* Fullscreen visualization modal */}
+      <AnimatePresence>
+        {fullscreenViz && (
+          <FullscreenModal
+            isOpen={!!fullscreenViz}
+            onClose={() => setFullscreenViz(null)}
+            title={fullscreenViz.title}
+            description={fullscreenViz.description}
+          >
+            {fullscreenViz.type === 'brain' && <InteractiveBrain fullscreen />}
+            {fullscreenViz.type === 'neural-network' && <NeuralNetworkAnimation fullscreen />}
+            {fullscreenViz.type === 'timeline' && <AITimelineViz fullscreen />}
+            {fullscreenViz.type === 'fep' && <FreeEnergyPrinciple fullscreen />}
+            {fullscreenViz.type === 'consciousness' && <ConsciousnessIntelligenceChart fullscreen />}
+            {fullscreenViz.type === 'prediction' && <PredictionMechanismsComparison fullscreen />}
+            {fullscreenViz.type === 'scaling' && <ScalingLimitationsChart fullscreen />}
+            {fullscreenViz.type === 'conceptmap' && <AIConceptMap fullscreen />}
+            {fullscreenViz.type === 'free-energy-viz' && <FreeEnergyVisualizer fullscreen />}
+          </FullscreenModal>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+};
+
+// Configure ReactMarkdown to properly handle HTML content
+EnhancedMarkdown.defaultProps = {
+  skipHtml: false,
+  unwrapDisallowed: false
+};
+
+export default EnhancedMarkdown;
